@@ -17,7 +17,7 @@ fn main() {
 
     Application::new().run(|cx: &mut App| {
         let window_options = gpui_window_options(
-            "artisan.app",
+            "incisor.app",
             "Artisan",
             Some(gpui::WindowBounds::Windowed(bounds(
                 point(px(0.), px(0.)),

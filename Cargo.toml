@@ -1,12 +1,12 @@
 [package]
-name = "artisan"
+name = "incisor"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
 description = "Flash OS images to SD cards and USB drives, safely and easily."
 
 [[bin]]
-name = "artisan"
+name = "incisor"
 path = "src/main.rs"
 
 [dependencies]

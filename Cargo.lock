@@ -95,34 +95,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
-name = "artisan"
-version = "0.1.0"
-dependencies = [
- "bzip2",
- "crepuscularity-gpui",
- "flate2",
- "futures-util",
- "gpui",
- "libc",
- "notify-rust",
- "plist",
- "regex",
- "reqwest",
- "rfd",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "uuid",
- "walkdir",
- "xz2",
- "zip",
-]
-
-[[package]]
 name = "as-slice"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2544,6 +2516,34 @@ name = "imgref"
 version = "1.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89194689a993ab15268672e99e7b0e19da2da3268ac682e8f02d29d4d1434cd7"
+
+[[package]]
+name = "incisor"
+version = "0.1.0"
+dependencies = [
+ "bzip2",
+ "crepuscularity-gpui",
+ "flate2",
+ "futures-util",
+ "gpui",
+ "libc",
+ "notify-rust",
+ "plist",
+ "regex",
+ "reqwest",
+ "rfd",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "walkdir",
+ "xz2",
+ "zip",
+]
 
 [[package]]
 name = "indexmap"

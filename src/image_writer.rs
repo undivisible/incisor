@@ -291,7 +291,7 @@ mod tests {
     fn test_verify_sync_match() {
         // Write a temp file and verify it matches
         let dir = std::env::temp_dir();
-        let path = dir.join("artisan-test-verify.img");
+        let path = dir.join("incisor-test-verify.img");
         let data = b"verify me please!".repeat(1000);
         std::fs::write(&path, &data).unwrap();
 
@@ -302,7 +302,7 @@ mod tests {
     #[test]
     fn test_verify_sync_mismatch() {
         let dir = std::env::temp_dir();
-        let path = dir.join("artisan-test-verify-bad.img");
+        let path = dir.join("incisor-test-verify-bad.img");
         let data = b"original data".repeat(100);
         std::fs::write(&path, &data).unwrap();
 
@@ -321,7 +321,7 @@ mod tests {
         // Verify only reads first 16MB, so large data beyond that should still match
         let data = vec![0xABu8; 32_000_000]; // 32MB > 16MB verify limit
         let dir = std::env::temp_dir();
-        let path = dir.join("artisan-test-verify-large.img");
+        let path = dir.join("incisor-test-verify-large.img");
         std::fs::write(&path, &data).unwrap();
 
         assert!(verify_sync(path.to_str().unwrap(), &data));
@@ -376,7 +376,7 @@ async fn download_to_temp(
     let resp = client.get(url).send().await.ok()?;
     let total = resp.content_length().unwrap_or(0);
 
-    let tmp_path = std::env::temp_dir().join(format!("artisan-dl-{}.{}", uuid::Uuid::new_v4(), ext));
+    let tmp_path = std::env::temp_dir().join(format!("incisor-dl-{}.{}", uuid::Uuid::new_v4(), ext));
     let mut file = std::fs::File::create(&tmp_path).ok()?;
 
     let mut downloaded: u64 = 0;
