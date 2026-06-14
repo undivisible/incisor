@@ -1,0 +1,9 @@
+[project]
+name = "artisan"
+version = "0.1.0"
+
+[[targets]]
+type = "cargo"
+id = "artisan"
+name = "Artisan"
+description = "Flash OS images to SD cards and USB drives, safely and easily."
