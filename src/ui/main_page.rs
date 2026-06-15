@@ -322,7 +322,7 @@ impl ArtisanApp {
             .gap_1()
             .children(drives.iter().map(|drive| {
                 let checked = selected.contains(&drive.device);
-                let display = format!("{} ({})", drive.description, drive.display_name);
+                let display = drive.display_name.clone();
                 let is_ro = drive.is_read_only || is_flashing;
                 let device = drive.device.clone();
                 let w = weak.clone();
@@ -420,17 +420,19 @@ impl Render for ArtisanApp {
                                 else
                                     div text-xl text-zinc-500 "📁"
                             if {is_flashing}
-                                div text-xs text-zinc-400 text-center "{image_name}"
+                                div text-xs text-zinc-400 text-center truncate max-w-[140px] "{image_name}"
                             else if {has_image}
-                                div text-xs text-zinc-300 text-center truncate max-w-[140px] "{image_name}"
-                                button bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded text-2xs @click=change_source
-                                    "change"
+                                div flex flex-col items-center gap-1
+                                    div text-xs text-zinc-300 text-center truncate max-w-[140px] "{image_name}"
+                                    button bg-zinc-800 text-zinc-400 text-2xs rounded @click=change_source
+                                        "change"
                             else
-                                div text-xs text-zinc-500 "Select source"
-                                button bg-blue-600 text-white text-xs px-4 py-2 rounded-md @click=select_file
-                                    "Flash from file"
-                                button bg-zinc-800 text-zinc-400 text-xs px-4 py-2 rounded-md @click=show_url_modal
-                                    "Flash from URL"
+                                div flex flex-col items-center gap-1
+                                    div text-xs text-zinc-500 "Select source"
+                                    button bg-blue-600 text-white text-xs px-4 py-2 rounded-md @click=select_file
+                                        "Flash from file"
+                                    button bg-zinc-800 text-zinc-400 text-xs px-4 py-2 rounded-md @click=show_url_modal
+                                        "Flash from URL"
 
                         # Step divider
                         div w-16 h-0.5 bg-zinc-700
@@ -487,7 +489,7 @@ impl Render for ArtisanApp {
                     if {err_msg.is_some()}
                         div mt-6 px-4 py-2 bg-red-900/30 border border-red-800 rounded-md
                             div flex items-center justify-between gap-4
-                                div text-xs text-red-400 "{err_msg.as_ref().unwrap()}"
+                                div text-xs text-red-400 break-all "{err_msg.as_ref().unwrap()}"
                                 button bg-transparent text-red-400 border-none cursor-pointer @click=close_error
                                     "✕"
 
@@ -497,7 +499,7 @@ impl Render for ArtisanApp {
                         div bg-zinc-800 rounded-xl p-6 min-w-[380px] shadow-xl
                             div text-base text-zinc-100 font-bold "Warning"
                             div h-3
-                            div text-sm text-zinc-300 leading-relaxed "{warn_msg.as_ref().unwrap()}"
+                            div text-sm text-zinc-300 leading-relaxed break-all "{warn_msg.as_ref().unwrap()}"
                             div h-6
                             div flex gap-3 justify-end
                                 button bg-amber-600 text-white text-sm px-5 py-2 rounded-md @click=close_warning_continue
@@ -539,15 +541,15 @@ impl Render for ArtisanApp {
                                     "✕"
                             div flex flex-col gap-4
                                 div flex items-center justify-between
-                                    div text-sm text-zinc-200 "Safe write (verify after flash)"
+                                    div text-sm text-zinc-100 "Safe write (verify after flash)"
                                     div w-9 h-5 bg-blue-600 rounded-full p-0.5
                                         div w-4 h-4 bg-white rounded-full ml-auto
                                 div flex items-center justify-between
-                                    div text-sm text-zinc-200 "Auto-select single drive"
+                                    div text-sm text-zinc-100 "Auto-select single drive"
                                     div w-9 h-5 bg-zinc-700 rounded-full p-0.5
                                         div w-4 h-4 bg-white rounded-full
                                 div flex items-center justify-between
-                                    div text-sm text-zinc-200 "OS notifications"
+                                    div text-sm text-zinc-100 "OS notifications"
                                     div w-9 h-5 bg-blue-600 rounded-full p-0.5
                                         div w-4 h-4 bg-white rounded-full ml-auto
         "#};
