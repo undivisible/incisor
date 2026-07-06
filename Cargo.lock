@@ -989,8 +989,9 @@ dependencies = [
 
 [[package]]
 name = "crepuscularity-core"
-version = "0.4.15"
+version = "0.4.18"
 dependencies = [
+ "notify",
  "sha2 0.11.0",
  "thiserror 2.0.18",
  "toml 1.1.2+spec-1.1.0",
@@ -999,7 +1000,7 @@ dependencies = [
 
 [[package]]
 name = "crepuscularity-gpui"
-version = "0.4.6"
+version = "0.5.0"
 dependencies = [
  "crepuscularity-core",
  "crepuscularity-runtime",
@@ -1014,7 +1015,7 @@ dependencies = [
 
 [[package]]
 name = "crepuscularity-runtime"
-version = "0.4.10"
+version = "0.4.12"
 dependencies = [
  "crepuscularity-core",
  "gpui",
@@ -1026,7 +1027,7 @@ dependencies = [
 
 [[package]]
 name = "crepuscularity_macros"
-version = "0.5.4"
+version = "0.5.5"
 dependencies = [
  "crepuscularity-core",
  "proc-macro2",
