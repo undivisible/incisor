@@ -31,6 +31,7 @@ pub fn start_flash(
     image: ImageInfo,
     drives: Vec<Drive>,
     event_tx: mpsc::Sender<WriterEvent>,
+    verify: bool,
 ) -> FlashHandle {
     let (cmd_tx, cmd_rx) = mpsc::channel::<WriterCommand>(8);
     let handle = FlashHandle { cmd_tx: cmd_tx.clone() };
@@ -164,12 +165,16 @@ pub fn start_flash(
             drop(dest);
 
             // Verify
-            progress!(FlashProgress { step: FlashStep::Verifying, percentage: Some(0.0), ..Default::default() });
+            if verify {
+                progress!(FlashProgress { step: FlashStep::Verifying, percentage: Some(0.0), ..Default::default() });
 
-            let ok = verify_sync(&dev_path, &data);
+                let ok = verify_sync(&dev_path, &data);
 
-            if ok { successful += 1; } else { failed += 1; }
-            progress!(FlashProgress { step: FlashStep::Verifying, percentage: Some(100.0), ..Default::default() });
+                if ok { successful += 1; } else { failed += 1; }
+                progress!(FlashProgress { step: FlashStep::Verifying, percentage: Some(100.0), ..Default::default() });
+            } else {
+                successful += 1;
+            }
         }
 
         if cancelled {

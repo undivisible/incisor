@@ -36,6 +36,8 @@ impl ArtisanApp {
             a.device.cmp(&b.device)
         });
 
+        if !self.model.auto_select { return; }
+
         // Auto-select single valid non-system non-readonly drive
         let valid: Vec<String> = self.model.available_drives
             .iter()
@@ -61,6 +63,21 @@ impl ArtisanApp {
 
     pub fn close_settings(&mut self, _: &ClickEvent, _window: &mut Window, cx: &mut Context<Self>) {
         self.model.settings_open = false;
+        cx.notify();
+    }
+
+    pub fn toggle_safe_write(&mut self, _: &ClickEvent, _window: &mut Window, cx: &mut Context<Self>) {
+        self.model.toggle_safe_write();
+        cx.notify();
+    }
+
+    pub fn toggle_auto_select(&mut self, _: &ClickEvent, _window: &mut Window, cx: &mut Context<Self>) {
+        self.model.toggle_auto_select();
+        cx.notify();
+    }
+
+    pub fn toggle_os_notifications(&mut self, _: &ClickEvent, _window: &mut Window, cx: &mut Context<Self>) {
+        self.model.toggle_os_notifications();
         cx.notify();
     }
 
@@ -250,7 +267,7 @@ impl ArtisanApp {
         let (tx, mut rx) = tokio::sync::mpsc::channel::<WriterEvent>(64);
 
         let weak = cx.weak_entity();
-        let handle = image_writer::start_flash(image, drives.clone(), tx);
+        let handle = image_writer::start_flash(image, drives.clone(), tx, self.model.safe_write);
         self.flash_handle = Some(handle);
 
         // Flash event loop runs on GPUI's executor. Tokio runtime is entered at startup.
@@ -280,15 +297,17 @@ impl ArtisanApp {
                             app.model.page = Page::Success;
                             app.flash_handle = None;
 
-                            let title = if results.cancelled {
-                                "Flash cancelled"
-                            } else if results.successful > 0 {
-                                "Flash complete!"
-                            } else {
-                                "Flash failed"
-                            };
-                            let body = format!("{} successful, {} failed", results.successful, results.failed);
-                            notify_os(title, &body);
+                            if app.model.os_notifications {
+                                let title = if results.cancelled {
+                                    "Flash cancelled"
+                                } else if results.successful > 0 {
+                                    "Flash complete!"
+                                } else {
+                                    "Flash failed"
+                                };
+                                let body = format!("{} successful, {} failed", results.successful, results.failed);
+                                notify_os(title, &body);
+                            }
 
                             cx.notify();
                         });
@@ -311,7 +330,7 @@ impl ArtisanApp {
                 .px_2()
                 .py_1()
                 .text_xs()
-                .text_color(rgb(0x757575))
+                .text_color(rgb(0x71717a))
                 .child("No external drives detected. Plug one in.")
                 .into_any_element();
         }
@@ -334,7 +353,7 @@ impl ArtisanApp {
                     .gap_2()
                     .px_2()
                     .py_1()
-                    .text_color(if is_ro { rgb(0x757575) } else { rgb(0xe0e0e0) })
+                    .text_color(if is_ro { rgb(0x52525b) } else { rgb(0xd4d4d8) })
                     .id(SharedString::from(format!("drive-{}", device)));
 
                 if !is_ro {
@@ -352,14 +371,15 @@ impl ArtisanApp {
                         div()
                             .w(px(14.)).h(px(14.))
                             .border_1()
-                            .border_color(if checked { rgb(0x00aeef) } else { rgb(0x3a3a3a) })
-                            .bg(if checked { rgb(0x00aeef) } else { rgb(0x1a1a1a) })
+                            .border_color(if checked { rgb(0x3b82f6) } else { rgb(0x3f3f46) })
+                            .bg(if checked { rgb(0x3b82f6) } else { rgb(0x18181b) })
+                            .rounded(px(3.))
                             .flex().items_center().justify_center()
                             .child(if checked { div().text_color(white()).text_xs().child("✓") } else { div() }),
                     )
                     .child(div().text_xs().child(display))
                     .child(div().flex_1())
-                    .child(div().text_xs().text_color(rgb(0x757575)).child(size_label))
+                    .child(div().text_xs().text_color(rgb(0x71717a)).child(size_label))
             }))
             .into_any_element()
     }
@@ -383,24 +403,27 @@ impl Render for ArtisanApp {
         let is_flashing = m.is_flashing;
         let url_open = m.url_input_open;
         let url_text = m.url_text.clone();
+        let safe_write = m.safe_write;
+        let auto_select = m.auto_select;
+        let os_notifications = m.os_notifications;
         let p = &m.flash_progress;
         let speed_txt: SharedString = p.speed.map(|s| format!("{:.2} MB/s", s)).unwrap_or_default().into();
         let eta_txt: SharedString = p.eta.map(|e| format!("{:.0}s", e)).unwrap_or_default().into();
 
         let pct = p.percentage.unwrap_or(0.0) as f32;
         let bar_fill = div()
-            .h(px(12.))
-            .w(px(pct / 100.0 * 200.0))
-            .bg(rgb(0xda60ff))
+            .h(px(8.))
+            .w(relative(pct / 100.0))
+            .bg(rgb(0x3b82f6))
             .rounded_full();
 
         let drive_list = Self::render_drive_list(&m.available_drives, &m.selected_devices, &weak, is_flashing);
 
         let main_view: gpui::Div = view! {r#"
-            div w-full h-full bg-zinc-950 text-white flex flex-col items-center
+            div w-full h-full bg-zinc-950 text-white flex flex-col items-center relative
 
                 # Header — centered title
-                div w-full flex items-center justify-center px-4 py-3 border-b border-zinc-800
+                div w-full relative flex items-center justify-center px-4 py-3 border-b border-zinc-800
                     div text-lg font-bold tracking-wide "incisor"
                     div absolute right-4
                         button bg-transparent text-zinc-400 border-none cursor-pointer @click=open_settings
@@ -424,7 +447,7 @@ impl Render for ArtisanApp {
                             else if {has_image}
                                 div flex flex-col items-center gap-1
                                     div text-xs text-zinc-300 text-center truncate max-w-[140px] "{image_name}"
-                                    button bg-zinc-800 text-zinc-400 text-2xs rounded @click=change_source
+                                    button bg-zinc-800 text-zinc-400 text-xs rounded @click=change_source
                                         "change"
                             else
                                 div flex flex-col items-center gap-1
@@ -452,9 +475,9 @@ impl Render for ArtisanApp {
                                     {drive_list}
                             else
                                 if {m.drives_loaded}
-                                    div text-2xs text-zinc-600 "No external drives found"
+                                    div text-xs text-zinc-600 "No external drives found"
                                 else
-                                    div text-2xs text-zinc-500 "Scanning..."
+                                    div text-xs text-zinc-500 "Scanning..."
 
                         # Step divider
                         div w-16 h-0.5 bg-zinc-700
@@ -467,7 +490,7 @@ impl Render for ArtisanApp {
                                 div text-xs text-zinc-400 "Flashing..."
                                 div w-full h-2 bg-zinc-800 rounded-full overflow-hidden
                                     {bar_fill}
-                                div flex justify-between w-full text-2xs text-zinc-600
+                                div flex justify-between w-full text-xs text-zinc-600
                                     div "{speed_txt}"
                                     div "{eta_txt}"
                                 button bg-red-700 text-white text-xs w-full px-3 py-1.5 rounded-md @click=cancel_flash
@@ -542,16 +565,28 @@ impl Render for ArtisanApp {
                             div flex flex-col gap-4
                                 div flex items-center justify-between
                                     div text-sm text-zinc-100 "Safe write (verify after flash)"
-                                    div w-9 h-5 bg-blue-600 rounded-full p-0.5
-                                        div w-4 h-4 bg-white rounded-full ml-auto
+                                    if {safe_write}
+                                        div w-9 h-5 bg-blue-600 rounded-full p-0.5 cursor-pointer @click=toggle_safe_write
+                                            div w-4 h-4 bg-white rounded-full ml-auto
+                                    else
+                                        div w-9 h-5 bg-zinc-700 rounded-full p-0.5 cursor-pointer @click=toggle_safe_write
+                                            div w-4 h-4 bg-white rounded-full
                                 div flex items-center justify-between
                                     div text-sm text-zinc-100 "Auto-select single drive"
-                                    div w-9 h-5 bg-zinc-700 rounded-full p-0.5
-                                        div w-4 h-4 bg-white rounded-full
+                                    if {auto_select}
+                                        div w-9 h-5 bg-blue-600 rounded-full p-0.5 cursor-pointer @click=toggle_auto_select
+                                            div w-4 h-4 bg-white rounded-full ml-auto
+                                    else
+                                        div w-9 h-5 bg-zinc-700 rounded-full p-0.5 cursor-pointer @click=toggle_auto_select
+                                            div w-4 h-4 bg-white rounded-full
                                 div flex items-center justify-between
                                     div text-sm text-zinc-100 "OS notifications"
-                                    div w-9 h-5 bg-blue-600 rounded-full p-0.5
-                                        div w-4 h-4 bg-white rounded-full ml-auto
+                                    if {os_notifications}
+                                        div w-9 h-5 bg-blue-600 rounded-full p-0.5 cursor-pointer @click=toggle_os_notifications
+                                            div w-4 h-4 bg-white rounded-full ml-auto
+                                    else
+                                        div w-9 h-5 bg-zinc-700 rounded-full p-0.5 cursor-pointer @click=toggle_os_notifications
+                                            div w-4 h-4 bg-white rounded-full
         "#};
         main_view.into_any_element()
     }

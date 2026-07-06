@@ -71,6 +71,9 @@ pub struct AppModel {
     pub flash_uuid: Option<String>,
     pub url_input_open: bool,
     pub url_text: String,
+    pub safe_write: bool,
+    pub auto_select: bool,
+    pub os_notifications: bool,
 }
 
 impl AppModel {
@@ -92,8 +95,15 @@ impl AppModel {
             flash_uuid: None,
             url_input_open: false,
             url_text: String::new(),
+            safe_write: true,
+            auto_select: true,
+            os_notifications: true,
         }
     }
+
+    pub fn toggle_safe_write(&mut self) { self.safe_write = !self.safe_write; }
+    pub fn toggle_auto_select(&mut self) { self.auto_select = !self.auto_select; }
+    pub fn toggle_os_notifications(&mut self) { self.os_notifications = !self.os_notifications; }
 
     pub fn has_image(&self) -> bool { self.image.is_some() }
     pub fn has_drive(&self) -> bool { !self.selected_devices.is_empty() }
